@@ -1,0 +1,6 @@
+#ifndef __EASYARGS_H_INCLUDED__
+#define __EASYARGS_H_INCLUDED__
+
+
+
+#endif //__EASYARGS_H_INCLUDED__
