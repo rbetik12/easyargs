@@ -30,8 +30,13 @@ public:
 		
 		this->InitUsage();
 		this->ExplodeFlags();
+
+		for (std::string s : this->args)
+			std::cout << s + ' ';
+		std::cout << std::endl;
 	};
 
+	// should I free the Arguments?
 	~EasyArgs() {}
 
 	EasyArgs* Version(std::string version) 
@@ -144,7 +149,7 @@ private:
 			std::string s = this->args[i];
 
 			/* push back the exploded args */
-			if (this->IsMultipleFlagsArg(s)) 
+			if (this->IsMultipleFlagsArg(s))
 			{
 				for (unsigned int i = 1; i < s.length(); i++) 
 				{
@@ -166,7 +171,12 @@ private:
 
 	bool IsMultipleFlagsArg(std::string s) 
 	{
-		return s.length() > 2 && s[0] == '-' && s[1] != '-';
+		/* I didn't want to make <regex> a dependency, because it is too heavy
+		 * and I have already used enough */
+		return s.length() > 2 
+			&& s[0] == '-' 
+			&& s[1] != '-'
+			&& s.find("=") == std::string::npos;
 	}
 
 	Argument* GetArgByName(std::string name) 
@@ -198,9 +208,9 @@ private:
 
 // TODO: subcommands
 // TODO: get as specific type
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
-	char *raw[] = {"exec", "-pa", "-f=12", "--foo=true", "pos1", "-Sw"};
+	char *raw[] = {"exec", "-pba", "-f=12", "--foo=bar", "--verbose", "pos1", "-Sw"};
 	int raw_len = 7;
 
 	EasyArgs *ez = new EasyArgs(raw_len, raw);
@@ -215,7 +225,7 @@ int main(int argc, char *argv[])
 		->Positional("nom",  "om nom")
 		->PrintUsage();
 
-	if (ez->IsSet("v"))
+	if (ez->IsSet("pizza"))
 		std::cout << "True" << std::endl;
 	
 	std::cout << "Value for optional: " << ez->GetValueFor("f") << std::endl;
