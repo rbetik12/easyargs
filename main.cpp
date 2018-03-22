@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 		->Value("-p", "--pizza", "everybody likes pizza", false)
 		->Positional("name", "your name")
 		->Positional("nom", "om nom");
-	//		->PrintUsage();
+//		->PrintUsage();
 
 	if (ez->IsSet("-w"))
 		std::cout << "True" << std::endl;
