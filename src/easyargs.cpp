@@ -1,235 +1,221 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <sstream>
 #include <algorithm>
 
-#define DEBUG
-
-class Argument {
+class EasyArgs
+{
 public:
-	std::string Short;
-	std::string Long;
-	std::string Helptext;
-	bool Required;
-
-	Argument(std::string shrt, std::string lng, std::string helptext, bool required) {
-		this->Short = shrt;
-		this->Long = lng;
-		this->Helptext = helptext;
-		this->Required = required;
-	}
-};
-
-class EasyArgs {
-public:
-	EasyArgs(char argc, char *argv[]) 
+	// TODO: make cleaner the valueDelimiter (enum?)
+	EasyArgs(int argc, char *argv[])
 	{
 		for (int i = 0; i < argc; i++)
 			this->args.push_back(std::string(argv[i]));
-		
-		this->InitUsage();
-		this->ExplodeFlags();
 
-		for (std::string s : this->args)
-			std::cout << s + ' ';
-		std::cout << std::endl;
-	};
+		this->valueDelimiter = '=';
 
-	// should I free the Arguments?
+//		for (std::string s : this->args)
+//			std::cout << s << ", ";
+
+		this->posArgCount = 0;
+	}
+
 	~EasyArgs() {}
 
-	EasyArgs* Version(std::string version) 
+	EasyArgs *Version(std::string version)
 	{
 		this->version = version;
 		return this;
 	}
 
-	EasyArgs* Description(std::string desc) 
+	EasyArgs *Description(std::string desc)
 	{
 		this->description = desc;
 		return this;
 	}
 
-	EasyArgs* Flag(std::string shrt, std::string lng, std::string help) 
+	EasyArgs *Flag(std::string shrt, std::string lng, std::string helptext)
 	{
-		this->AddUsageOption(shrt, lng, help, false);
-		this->expectedArgs.push_back(new Argument(shrt, lng, help, false));
-		return this;
-	}
-
-	EasyArgs* Value(std::string shrt, std::string lng, std::string help, bool required) 
-	{
-		this->AddUsageOption(shrt, lng, help, required);
-		this->expectedArgs.push_back(new Argument(shrt, lng, help, required));
-		return this;
-	}
-
-	EasyArgs *Positional(std::string argname, std::string help)
-	{
-		this->usagePos << argname << ' ';
-		this->expectedArgs.push_back(new Argument(argname, argname, help, true));
-		return this;
-	};
-
-	bool IsSet(std::string argname) 
-	{
-		Argument* ret = GetArgByName(argname);
-
-		if (!ret)
-			return false;
-
-		return std::find(this->args.begin(), this->args.end(), '-' + ret->Short) != this->args.end() 
-			|| std::find(this->args.begin(), this->args.end(), "--" + ret->Long) != this->args.end();
-	}
-	
-	std::string GetValueFor(std::string argname) 
-	{
-		auto it = std::find(this->args.begin(), this->args.end(), '-' + argname);
-		if (it == this->args.end() || it == this->args.end() - 1) 
+		// if shrt in args or lng in args, push both in flagsSet;
+		if (this->FlagIsSet(shrt, lng))
 		{
-			it = std::find(this->args.begin(), this->args.end(), "--" + argname);
-			if (it == this->args.end() || it == this->args.end() - 1) 
-			{
-				std::ostringstream err;
-				err << '"' << argname << '"' << " not specified";
-				this->Error(err.str());
-			}
+			this->flagsSet.push_back(shrt);
+			this->flagsSet.push_back(lng);
 		}
-		std::string ret = *(it + 1);
-		if (ret[0] != '-') 
-		{
-			return ret;
-		}
-		return "penis";
+		return this;
 	}
 
-	std::string GetPositional(std::string name) 
+	EasyArgs *Value(std::string shrt, std::string lng, std::string helptext, bool required)
 	{
-		return name; // FIXME
+		// search for shrt. if not found, search for lng. store value in map (with entries
+		// both the shrt and long name). if required and not given, ->error.
+		std::string val = this->GetValueFromArgs(shrt, lng);
+
+		if (val.empty() && required)
+			this->Error("argument " + shrt + "," + lng + " is required");
+		else
+		{
+			this->valuesGiven.insert(std::pair<std::string, std::string>(shrt, val));
+			this->valuesGiven.insert(std::pair<std::string, std::string>(lng, val));
+		}
+
+		return this;
 	}
-	
-	void PrintUsage()
+
+	EasyArgs *Positional(std::string name, std::string helptext)
 	{
-		std::cout << this->usage.str();
-		std::cout << this->usagePos.str() << std::endl << std::endl;
-		std::cout << "version: " << this->version << std::endl;
-		std::cout << "description: " << this->description << std::endl << std::endl;
-		std::cout << this->usageOpt.str() << std::endl;
+		// in constructor -> form posvector with given positionals. after that,
+		// in this function, count the times it is called, and store to the 
+		// posit. map <name, posvector[times called]> or throw error if not given enough
+		// in vector.
+		// search for positional, store in appropriate map with key
+		this->posArgCount++;
+		std::string pos = this->FetchPositional();
+		if (pos.empty())
+			this->Error("positional argument " + name + " is required");
+			
+		this->posGiven.insert(std::pair<std::string, std::string>(name, pos));
+
+		return this;
+	}
+
+	bool IsSet(std::string arg)
+	{
+//		for (std::string flag : this->flagsSet)
+//			std::cout << flag << ", ";
+		return std::find(this->flagsSet.begin(), this->flagsSet.end(), arg)
+			!= this->flagsSet.end();
+	}
+
+	std::string GetValueFor(std::string arg)
+	{
+//		valuesSet.insert(std::pair<std::string, std::string>())
+		return valuesGiven[arg];
+	}
+
+	std::string GetPositional(std::string name)
+	{
+		return this->posGiven[name];
 	}
 
 private:
 	std::vector<std::string> args;
-	std::vector<Argument*> expectedArgs;
-	std::map<std::string, std::string> optValues;
-	std::map<std::string, std::string> posValues;
+	enum ArgType {flagShrt, flagLng, val, pos};
 
-	std::stringstream usage;
-	std::stringstream usageOpt;
-	std::stringstream usagePos;
+	std::vector<std::string> flagsSet;
+	std::map<std::string, std::string> valuesGiven;
+	std::map<std::string, std::string> posGiven;
+	int posArgCount;
 
 	std::string version;
 	std::string description;
+	std::string valueDelimiter;
 
-	void InitUsage() 
+	bool FlagIsSet(std::string shrt, std::string lng)
 	{
-		this->version = "0.0.1";
-		this->description = "-";
-		this->usage << "usage: " << this->args[0] << " [OPTIONS] ";
-		this->usageOpt << "OPTION       REQUIRED   DESCRIPTION\n-----------------------------------\n";
+		for (std::string rawArg : this->args)
+		{
+			ArgType typ = this->FindArgType(rawArg);
+//			std::cout << rawArg + " has type: " << typ << std::endl;
+			
+			if (typ == ArgType::flagLng 
+				&& rawArg == lng)
+				return true;
+
+			if (typ == ArgType::flagShrt 
+				&& rawArg.find(shrt[1]) != std::string::npos)
+				return true;
+		}
+		return false;
 	}
 
-	void ExplodeFlags() 
+	// instead of looking up each time, I should maybe find the types once and be done with it.
+	ArgType FindArgType(std::string arg)
 	{
-		/* if s is argument of type '-abc', make it '-a -b -c' */
-		int argc = this->args.size();
+		if (arg[0] != '-')
+			return ArgType::pos;
 
-		for (int i = 0; i < argc; i++) 
-		{
-			std::string s = this->args[i];
+		size_t pos = 0;
+		if ((pos = arg.find(this->valueDelimiter)) != std::string::npos)
+			return ArgType::val;
 
-			/* push back the exploded args */
-			if (this->IsMultipleFlagsArg(s))
-			{
-				for (unsigned int i = 1; i < s.length(); i++) 
-				{
-					std::string ret = "-";
-					ret += s[i];
-					this->args.push_back(ret);
-				}
-			}
-		}
-		/* delete the leftovers */
-		for (auto it = this->args.begin(); it != this->args.end(); ) 
-		{
-			if (this->IsMultipleFlagsArg(*it)) 
-				it = this->args.erase(it);
-			else
-				it++;
-		}
-	};
-
-	bool IsMultipleFlagsArg(std::string s) 
-	{
-		/* I didn't want to make <regex> a dependency, because it is too heavy
-		 * and I have already used enough */
-		return s.length() > 2 
-			&& s[0] == '-' 
-			&& s[1] != '-'
-			&& s.find("=") == std::string::npos;
+		return arg.size() > 2 && arg[1] == '-' ? ArgType::flagLng : ArgType::flagShrt;
 	}
 
-	Argument* GetArgByName(std::string name) 
+	std::string GetValueFromArgs(std::string shrt, std::string lng)
 	{
-		Argument* ret = NULL;
-
-		for (Argument *arg : this->expectedArgs)
+		// I use the same code above, abstract pls.
+		for (std::string rawArg : this->args)
 		{
-			if (arg->Short == name || arg->Long == name)
-				ret = arg;
+			ArgType typ = this->FindArgType(rawArg);
+
+			std::string key = this->ExtractKey(rawArg);
+
+			if (typ == ArgType::val
+				&& (key == lng || key == shrt))
+				return this->ExtractValue(rawArg);
 		}
 
-		return ret;
+		return "";
 	}
 
-	void AddUsageOption(std::string shrt, std::string lng, std::string help, bool required) 
+	std::string ExtractKey(std::string arg)
 	{
-		//lng = lng.size() < 8 ? lng + '\t' : lng;
-		std::string req = required ? "yes" : "no";
-		this->usageOpt << shrt + ", " << lng + '\t' << req + '\t' << help << std::endl;
+		return arg.substr(0, arg.find(this->valueDelimiter));
 	}
 
-	void Error(std::string err) 
+	std::string ExtractValue(std::string arg)
 	{
-		std::cout << "wrong arguments: " << err << std::endl;
-		this->PrintUsage();
+		size_t pos = arg.find(this->valueDelimiter);
+		return arg.substr(pos + 1, arg.length() - pos -1);
+	}
+
+	std::string FetchPositional()
+	{
+		int i = 0;
+		for (std::string rawArg : this->args)
+		{
+			ArgType typ = this->FindArgType(rawArg);
+			if (typ == ArgType::pos)
+				i++;
+			if (i == this->posArgCount)
+				return rawArg;				
+		}
+		return "";
+	}
+
+	void Error(std::string err)
+	{
+		std::cerr << "arguments error: " + err << std::endl;
+		//this->PrintUsage();
+		//throw exception;
 	}
 };
 
-// TODO: subcommands
-// TODO: get as specific type
+// TODO: add methods: getAllFlags, getAllValues, getAllPositional
+// TODO: add another constructor for vector, or array
 int main(int argc, char *argv[])
 {
-	char *raw[] = {"exec", "-pba", "-f=12", "--foo=bar", "--verbose", "pos1", "-Sw"};
-	int raw_len = 7;
+	char *raw[] = {"exec", "-pba", "-m=12", "--foo=bar", "--verbose", "pos1", "-Sw", "pos2"};
+	int raw_len = 8;
 
 	EasyArgs *ez = new EasyArgs(raw_len, raw);
 
 	ez->Version("0.1")
 		->Description("Example")
-		->Flag("b", "bacon", "bacon help message")
-		->Flag("v", "verbose", "be verbose")
-		->Value("f", "foo", "foo help message", true)
-		->Value("p", "pizza", "everybody likes pizza", false)
+		->Flag("-b", "--bacon", "bacon help message")
+		->Flag("-v", "--verbose", "be verbose")
+		->Value("-f", "--foo", "foo help message", true)
+		->Value("-p", "--pizza", "everybody likes pizza", false)
 		->Positional("name", "your name")
-		->Positional("nom",  "om nom")
-		->PrintUsage();
+		->Positional("nom", "om nom");
+//		->PrintUsage();
 
-	if (ez->IsSet("pizza"))
+	if (ez->IsSet("-w"))
 		std::cout << "True" << std::endl;
-	
-	std::cout << "Value for optional: " << ez->GetValueFor("f") << std::endl;
-	std::cout << "Value for positional: " << ez->GetPositional("name");
+
+	std::cout << "Value for optional: " << ez->GetValueFor("--foo") << std::endl;
+	std::cout << "Value for positional: " << ez->GetPositional("nom");
 
 	delete ez;
 
