@@ -17,8 +17,8 @@ enum ArgType
 class EasyArgs
 {
   public:
-	EasyArgs(int argc, char *argv[]) {}
-	~EasyArgs() {}
+	EasyArgs(int argc, char *argv[]);
+	~EasyArgs();
 
 	EasyArgs *Version(std::string version);
 	EasyArgs *Description(std::string desc);
