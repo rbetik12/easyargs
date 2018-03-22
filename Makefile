@@ -2,5 +2,5 @@
 CC = g++
 FLAGS = -g -Wall
 
-all: src/easyargs.cpp
+all: main.cpp
 	$(CC) $(FLAGS) $^ -o easyargs
