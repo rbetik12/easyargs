@@ -1,18 +1,34 @@
 #include "easyargs.h"
 
-#include <iostream>
-#include <vector>
-#include <map>
-#include <algorithm>
 
 EasyArgs::EasyArgs(int argc, char *argv[])
 {
-	for (int i = 0; i < argc; i++)
+	for (int i = 1; i < argc; i++)
 		this->args.push_back(std::string(argv[i]));
 
-	this->valueDelimiter = '=';
+	this->Initialize(std::string(argv[0]));
+}
 
+EasyArgs::EasyArgs(int argc, std::string argv[])
+{
+	for (int i = 1; i < argc; i++)
+		this->args.push_back(std::string(argv[i]));
+	
+	this->Initialize(argv[0]);
+}
+
+EasyArgs::EasyArgs(std::vector<std::string> argv)
+{
+	this->args = argv;
+
+	this->Initialize(argv[0]);
+}
+
+void EasyArgs::Initialize(std::string name)
+{
+	this->valueDelimiter = '=';
 	this->posArgCount = 0;
+	this->usageSummary << "usage: " << name << " [OPTIONS] ";
 }
 
 EasyArgs::~EasyArgs() {}
@@ -36,6 +52,9 @@ EasyArgs *EasyArgs::Flag(std::string shrt, std::string lng, std::string helptext
 		this->flagsSet.push_back(shrt);
 		this->flagsSet.push_back(lng);
 	}
+
+	this->helpOpt << shrt + ", " + lng + "\t" << "no\t" << helptext << std::endl;
+
 	return this;
 }
 
@@ -51,6 +70,8 @@ EasyArgs *EasyArgs::Value(std::string shrt, std::string lng, std::string helptex
 		this->valuesGiven.insert(std::pair<std::string, std::string>(lng, val));
 	}
 
+	this->helpOpt << shrt + "=, " + lng + "=\t" << (required ? "yes\t" : "no\t") << helptext << std::endl;
+
 	return this;
 }
 
@@ -62,6 +83,9 @@ EasyArgs *EasyArgs::Positional(std::string name, std::string helptext)
 		this->Error("positional argument " + name + " is required");
 
 	this->posGiven.insert(std::pair<std::string, std::string>(name, pos));
+
+	this->usageSummary << name + ' ';
+	this->helpPos << name << "\t\t" << helptext << std::endl;
 
 	return this;
 }
@@ -79,6 +103,23 @@ std::string EasyArgs::GetValueFor(std::string arg)
 std::string EasyArgs::GetPositional(std::string name)
 {
 	return this->posGiven[name];
+}
+
+void EasyArgs::PrintUsage()
+{
+	std::cout << std::endl;
+	std::cout << "version: " << this->version << std::endl;
+	std::cout << "description: " << this->description << std::endl;
+	std::cout << this->usageSummary.str() << std::endl << std::endl;
+
+	std::cout << "OPTION       REQUIRED   DESCRIPTION\n===========================================" << std::endl;
+	std::cout << this->helpOpt.str() << std::endl << std::endl;
+	
+	if (this->posArgCount > 0)
+	{
+		std::cout << "POSITIONAL      DESCRIPTION\n===========================================" << std::endl;
+		std::cout << this->helpPos.str() << std::endl;
+	}
 }
 
 bool EasyArgs::FlagIsSet(std::string shrt, std::string lng)
@@ -111,7 +152,6 @@ ArgType EasyArgs::FindArgType(std::string arg)
 
 std::string EasyArgs::GetValueFromArgs(std::string shrt, std::string lng)
 {
-	// I use the same code above, abstract pls.
 	for (std::string rawArg : this->args)
 	{
 		ArgType typ = this->FindArgType(rawArg);
@@ -152,7 +192,5 @@ std::string EasyArgs::FetchPositional()
 
 void EasyArgs::Error(std::string err)
 {
-	std::cerr << "arguments error: " + err << std::endl;
-	//this->PrintUsage();
-	//throw exception;?
+	throw std::runtime_error("incorrect arguments: " + err);
 }

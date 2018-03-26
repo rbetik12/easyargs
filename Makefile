@@ -1,12 +1,19 @@
-
 CC = g++
 FLAGS = -g -Wall
 
-all: main.
-	$(CC) $(FLAGS) $^ -o easyargs
+tests: main.cpp easyargs.o
+	$(CC) $(FLAGS) -o $@ $?
+	./tests
 
-tests:
+easyargs.o: easyargs.cpp
+	$(CC) $(FLAGS) -c -fPIC $? -o $@
 
+lib: libezrg.so
 
-# use make lib to create easyargs.so, which you can then link with -ldl
-lib:
+libezrg.so: easyargs.o
+	$(CC) -shared $? -o $@
+
+clean:
+	rm *.o
+	rm tests
+

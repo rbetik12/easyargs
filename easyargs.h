@@ -1,6 +1,7 @@
 #ifndef __EASYARGS_H_INCLUDED__
 #define __EASYARGS_H_INCLUDED__
 
+#include <sstream>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -18,6 +19,10 @@ class EasyArgs
 {
   public:
 	EasyArgs(int argc, char *argv[]);
+	EasyArgs(int argc, std::string aegv[]);
+	EasyArgs(std::vector<std::string> argv);
+	void Initialize(std::string name);
+
 	~EasyArgs();
 
 	EasyArgs *Version(std::string version);
@@ -30,6 +35,8 @@ class EasyArgs
 	std::string GetValueFor(std::string arg);
 	std::string GetPositional(std::string name);
 
+	void PrintUsage();
+
   private:
 	std::vector<std::string> args;
 
@@ -41,6 +48,10 @@ class EasyArgs
 	std::string version;
 	std::string description;
 	std::string valueDelimiter;
+
+	std::stringstream helpOpt;
+	std::stringstream helpPos;
+	std::stringstream usageSummary;
 
 	ArgType FindArgType(std::string arg);
 
