@@ -12,7 +12,7 @@ EasyArgs::EasyArgs(int argc, char *argv[])
 EasyArgs::EasyArgs(int argc, std::string argv[])
 {
 	for (int i = 1; i < argc; i++)
-		this->args.push_back(std::string(argv[i]));
+		this->args.push_back(argv[i]);
 	
 	this->Initialize(argv[0]);
 }
