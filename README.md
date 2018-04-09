@@ -44,7 +44,7 @@ $ make lib  # to build a dynamic lib (.so)
 
 	Flags are **optional** arguments given in the form of "-a" (short form) or "--argument" (long form). 
 
-	Flags are considered _set_ (meaning the have a boolean value of `true`) when they are specified in the program's cmdline arguments.
+	Flags are considered _set_ (meaning the have a boolean value of `true`) when they are given in the program's cmdline arguments.
 	
 	To get the boolean value use `ez->IsSet("--long")` or `ez->IsSet("-s")` (long or short form respectively).
 
@@ -128,6 +128,8 @@ int main(int argc, char *argv[])
 	ez->GetPositional("nom");       // "pos2", same
 
 	delete ez;
+
+	return 0;
 }
 ```
 
