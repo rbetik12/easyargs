@@ -26,7 +26,7 @@ void test0()
 	  ->Positional("name", "your name")
 	  ->Positional("nom", "om nom");
 	
-	ez->PrintUsage();
+	// ez->PrintUsage();
 
 	assert(!ez->IsSet("-w"));
 	assert(!ez->IsSet("-S"));
