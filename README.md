@@ -2,7 +2,7 @@
 
 A simple C++ command line arguments parser
 
-See [tests.cpp](./main.cpp) for tests and usage examples
+See [tests.cpp](./tests.cpp) for tests and usage examples
 
 ## Building
 

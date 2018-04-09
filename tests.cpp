@@ -114,9 +114,6 @@ test tests[NUM_TESTS] = {test0, test1, test2, test3};
 
 int main(int argc, char *argv[])
 {
-	/* EasyArgs has a contructor for passing directly the cmdline args like this: */
-	// EasyArgs *ez = new EasyArgs(argc, argv);
-	
 	for (int i = 0; i < NUM_TESTS; i++)
 	{
 		std::cout << "Executing test" << i << "..." << std::endl;
