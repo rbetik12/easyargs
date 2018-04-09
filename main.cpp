@@ -25,7 +25,8 @@ void test0()
 	  ->Value("-p", "--pizza", "everybody likes pizza", false)
 	  ->Positional("name", "your name")
 	  ->Positional("nom", "om nom");
-	//->PrintUsage();
+	
+	ez->PrintUsage();
 
 	assert(!ez->IsSet("-w"));
 	assert(!ez->IsSet("-S"));

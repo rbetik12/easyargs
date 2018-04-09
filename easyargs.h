@@ -19,7 +19,7 @@ class EasyArgs
 {
   public:
 	EasyArgs(int argc, char *argv[]);
-	EasyArgs(int argc, std::string aegv[]);
+	EasyArgs(int argc, std::string argv[]);
 	EasyArgs(std::vector<std::string> argv);
 	void Initialize(std::string name);
 
