@@ -42,7 +42,7 @@ $ make lib  # to build a dynamic lib (.so)
 	  ->Flag("-v", "--verbose", "be verbose");
 	```
 
-	Flags are **optional** arguments given in the form of "-a" (short form) or "--argument" (long form). 
+	Flags are **optional** arguments given in the form of "-a" (short form) or "--argument" (long form). Multiple flags can also be given in the form of "-abc".
 
 	Flags are considered _set_ (meaning the have a boolean value of `true`) when they are given in the program's cmdline arguments.
 	
@@ -52,7 +52,7 @@ $ make lib  # to build a dynamic lib (.so)
 
 	```c++
 	ez->Value("-f", "--foo", "foo help message", true)
-	->Value("-p", "--pizza", "everybody likes pizza", false);
+	  ->Value("-p", "--pizza", "everybody likes pizza", false);
 	```
 
 	Values are arguments given in the form of "-a=value" (short form) (short form) or "--argument=value" (long form).
