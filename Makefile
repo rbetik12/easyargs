@@ -1,7 +1,7 @@
 CC = g++
 FLAGS = -g -Wall
 
-tests: main.cpp easyargs.o
+tests: tests.cpp easyargs.o
 	$(CC) $(FLAGS) -o $@ $?
 	./tests
 
