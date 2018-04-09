@@ -8,9 +8,9 @@ tests: main.cpp easyargs.o
 easyargs.o: easyargs.cpp
 	$(CC) $(FLAGS) -c -fPIC $? -o $@
 
-lib: libezrg.so
+lib: libezargs.so
 
-libezrg.so: easyargs.o
+libezargs.so: easyargs.o
 	$(CC) -shared $? -o $@
 
 clean:

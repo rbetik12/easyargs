@@ -97,7 +97,7 @@ bool EasyArgs::IsSet(std::string arg)
 
 std::string EasyArgs::GetValueFor(std::string arg)
 {
-	return valuesGiven[arg];
+	return this->valuesGiven[arg];
 }
 
 std::string EasyArgs::GetPositional(std::string name)
