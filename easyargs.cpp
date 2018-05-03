@@ -1,11 +1,5 @@
 #include "easyargs.h"
 
-#include <sstream>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <algorithm>
-
 EasyArgs::EasyArgs(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++)
