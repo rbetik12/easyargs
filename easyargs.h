@@ -1,12 +1,6 @@
 #ifndef __EASYARGS_H_INCLUDED__
 #define __EASYARGS_H_INCLUDED__
 
-#include <sstream>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <algorithm>
-
 enum ArgType
 {
 	flagShrt,

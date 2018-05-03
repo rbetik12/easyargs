@@ -1,6 +1,4 @@
-
 #include "easyargs.h"
-
 #include <assert.h>
 
 #define GREEN "\033[1;32m"
