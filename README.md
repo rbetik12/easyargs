@@ -2,15 +2,9 @@
 
 A simple C++ command line arguments parser
 
-See [tests.cpp](./tests.cpp) for tests and usage examples
-
 ## Building
-
-See the [Makefile](./Makefile)
-
-```bash
-$ make      # to build and run tests
-$ make lib  # to build a dynamic lib (.so)
+```
+WIP
 ```
 
 ## Usage
